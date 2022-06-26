@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>不休的音符自制谱库:上传曲谱</title>
+   <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+</head>
+<body>
+   <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+   <script type="text/javascript" src="js/materialize.min.js"></script>
+   <script type="text/javascript">
+       $(document).ready(function(){
+           $('.modal').modal();
+       });
+   </script>
+
+   <nav class="nav-wrapper light-blue lighten-2">
+      <div class="container">
+          <a href="http://114.116.8.182:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
+          <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
+          <div id="modal1" class="modal">
+              <div class="modal-content black-text">
+                  <h4>作者留言</h4>
+                  <br>
+                  <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
+                  <p>寻求用爱发电的前端设计师来合作~</p>
+              </div>
+          </div>
+      </div>
+  </nav>
+  
+   <div class="container">
+      <div class="row">
+      </div>
+      <form action="send" method="post" enctype="multipart/form-data" onsubmit="return verify()">
+         <label style="font-size: 20px">请选择图片（必填，大小限制为2M）</label>
+         <div class="file-field input-field">
+            <div class="btn light-blue lighten-2">
+               <span>浏览</span>
+               <input type="file" name="qr_code" id="qr_code">
+            </div>
+            <div class="file-path-wrapper">
+               <input class="file-path validate" type="text">
+            </div>
+         </div>
+         <div class="row">
+         </div>
+         <label style="font-size: 20px">请输入歌曲名称（必填）</label>
+         <input type="text" name="song_name" id="song_name"><br>
+         <label style="font-size: 20px">请输入歌曲作者</label>
+         <input type="text" name="song_author" id="song_author" placeholder="歌曲作者是这首歌的作者，不是谱的作者，别填自己"><br>
+         <label style="font-size: 20px">请输入歌曲节拍速度</label>
+         <input type="text" name="song_bpm" id="song_bpm"><br>
+         <label style="font-size: 20px">请输入曲谱作者</label>
+         <input type="text" name="spectrum_author" id="spectrum_author"><br>
+         <label style="font-size: 20px">请输入谱面视频网址</label>
+         <input type="text" name="sample_video" id="sample_video" placeholder="录屏或者拍摄视频均可，推荐bilibili链接。"><br>
+         <label style="font-size: 20px">请输入难度（多个难度用英文逗号分隔）</label>
+         <input type="text" name="song_difficulty" id="song_difficulty"><br>
+         <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="确认上传">
+      </form>
+   </div>
+   <%if(msg.msg){ %>
+      <script type="text/javascript">
+         alert("<%=msg.msg%>")
+      </script>
+   <%}%>
+   <script type="text/javascript">
+      function verify() {
+         var qr_code = document.getElementById('qr_code').value;
+         var song_name = document.getElementById('song_name').value;
+         var song_difficulty = document.getElementById('song_difficulty').value;
+         if (qr_code == '' || qr_code==null) {
+            alert('请上传二维码图片');
+            return false;
+         }
+         if(song_name==''){
+            alert('请填写曲目名称');
+            return false;
+         }
+         if(song_difficulty!=''){
+            var difficulties = song_difficulty.split(',');
+            for(var i in difficulties){
+               if(isNaN(difficulties[i]) || Number(difficulties[i]) <= 0 || Number(difficulties[i]) > 10){
+                  alert('歌曲难度输入有误');
+                  return false;
+               }
+            }
+         }
+      }
+   </script>
+
+   <footer class="page-footer light-blue darken-2">
+      <div class="container">
+         <div class="row">
+            <div class="col l6 m6 s12">
+                  <h5 class="white-text">联系作者</h5>
+                  <ul>
+                     <a class="grey-text text-lighten-4">大狱传奇 SuperGP</a><br>
+                     <a class="grey-text text-lighten-4">1363028533@qq.com</a><br>
+                  </ul>
+            </div>
+            <div class="col l4 m4 offset-l2 s12">
+                  <h5 class="white-text">链接</h5>
+                  <ul>
+                     <li><a class="grey-text text-lighten-3" href="https://bxdyf.gamekuaishou.com/" target="_blank">不休的音符官网</a></li>
+                     <li><a class="grey-text text-lighten-3" href="https://www.biligame.com/detail/?id=105934&sourceFrom=1112&spm_id_from=333.337.0.0" target="_blank">Bilibili 专区</a></li>
+                  </ul>
+            </div>
+         </div>
+      </div>
+      <div class="row">
+         <div class="footer-copyright col s12">
+            <div class="container">
+                  &nbsp;© 2022 Copyright SuperGP
+            </div>
+         </div>
+      </div>
+   </footer>
+</body>
+</html>

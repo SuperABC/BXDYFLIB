@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>不休的音符自制谱库</title>
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+</head>
+<body>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('.modal').modal();
+        });
+    </script>
+    
+    <nav class="nav-wrapper light-blue lighten-2">
+        <div class="container">
+            <a href="http://114.116.8.182:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
+            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
+            <div id="modal1" class="modal">
+                <div class="modal-content black-text">
+                    <h4>作者留言</h4>
+                    <br>
+                    <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
+                    <p>寻求用爱发电的前端设计师来合作~</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="row">
+        </div>
+        <div class="row">
+            <a class="light-blue-text text-lighten-2" style="font-size:20px">&nbsp;&nbsp;当前共收录曲谱<%=total.num%>首。</a>
+        </div>
+        <div class="row">
+            <form class="col s12 m10 l10" action="result" method="post" enctype="multipart/form-data">
+                <label style="font-size: 20px">查询歌曲名称</label>
+                <input type="text" name="song_name"><br>
+                <label style="font-size: 20px">查询歌曲作者</label>
+                <input type="text" name="song_author"><br>
+                <label style="font-size: 20px">查询曲谱作者</label>
+                <input type="text" name="spectrum_author"><br>
+                <label style="font-size: 20px">查询难度</label>
+                <input type="text" name="song_difficulty"><br>
+                <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="搜索曲目">
+            </form>
+            <div class="col s12 m1 l1">
+                <a href="upload" class="btn-floating btn-large waves-effect waves-light red lighten-1">
+                    上传
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <span class="light-blue-text text-darken-2" style="font-size:32px">&nbsp;官方宣传视频</span>
+        </div>
+        <video class="responsive-video" controls width="1080" height="720">
+            <source src="https://ali-static.game.yximgs.com/udata/pkg/KS-GAME-WEB/gameweb/1611316238382_.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <footer class="page-footer light-blue darken-2">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 m6 s12">
+                    <h5 class="white-text">联系作者</h5>
+                    <ul>
+                        <a class="grey-text text-lighten-4">大狱传奇 SuperGP</a><br>
+                        <a class="grey-text text-lighten-4">1363028533@qq.com</a><br>
+                    </ul>
+                </div>
+                <div class="col l4 m4 offset-l2 s12">
+                    <h5 class="white-text">链接</h5>
+                    <ul>
+                        <li><a class="grey-text text-lighten-3" href="https://bxdyf.gamekuaishou.com/" target="_blank">不休的音符官网</a></li>
+                        <li><a class="grey-text text-lighten-3" href="https://www.biligame.com/detail/?id=105934&sourceFrom=1112&spm_id_from=333.337.0.0" target="_blank">Bilibili 专区</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="footer-copyright col s12">
+                <div class="container">
+                    &nbsp;© 2022 Copyright SuperGP
+                </div>
+            </div>
+        </div>
+     </footer>
+</body>
+</html>

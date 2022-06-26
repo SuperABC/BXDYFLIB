@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>不休的音符自制谱库:搜索结果</title>
+   <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+</head>
+<body>
+   <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+   <script type="text/javascript" src="js/materialize.min.js"></script>
+   <script type="text/javascript">
+       $(document).ready(function(){
+           $('.modal').modal();
+       });
+   </script>
+
+   <nav class="nav-wrapper light-blue lighten-2">
+      <div class="container">
+          <a href="http://114.116.8.182:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
+          <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
+          <div id="modal1" class="modal">
+              <div class="modal-content black-text">
+                  <h4>作者留言</h4>
+                  <br>
+                  <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
+                  <p>寻求用爱发电的前端设计师合作ovo~</p>
+              </div>
+          </div>
+      </div>
+  </nav>
+  
+   <div class="container">
+   <div class="row">
+   </div>
+   <form action="result" method="post" enctype="multipart/form-data">
+      <label style="font-size: 20px">查询歌曲名称</label>
+      <input type="text" name="song_name"><br>
+      <label style="font-size: 20px">查询歌曲作者</label>
+      <input type="text" name="song_author"><br>
+      <label style="font-size: 20px">查询曲谱作者</label>
+      <input type="text" name="spectrum_author"><br>
+      <label style="font-size: 20px">查询难度</label>
+      <input type="text" name="song_difficulty"><br>
+      <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="搜索曲目">
+   </form>
+   <div class="row">
+   </div>
+   <%if(result.length == 0){ %>
+      <p>没有符合条件的曲谱</p>
+   <%}%>
+   <%for(var i=0;i<result.length;i++){ %>
+      <div class="row">
+         <div class="col s12 m12 l12">
+            <div class="card blue-grey darken-1">
+               <div class="card-content white-text">
+                  <span class="card-title" style="font-size:40px"><%=result[i].song_name%></span>
+                  <div class="row">
+                  </div>
+                  <div class="row">
+                     <div class="col s12 m6 l6">
+                           <%if(result[i].song_author){ %>
+                              <p>歌曲作者: <%=result[i].song_author%></p>
+                           <%}%>
+                           <%if(!result[i].song_author){ %>
+                              <p>歌曲作者: 暂无</p>
+                           <%}%>
+                           <%if(result[i].song_bpm){ %>
+                              <p>曲谱速度：<%=result[i].song_bpm%></p>
+                           <%}%>
+                           <%if(!result[i].song_bpm){ %>
+                              <p>曲谱速度：暂无</p>
+                           <%}%>
+                           <%if(result[i].spectrum_author){ %>
+                              <p>曲谱作者: <%=result[i].spectrum_author%></p>
+                           <%}%>
+                           <%if(!result[i].spectrum_author){ %>
+                              <p>曲谱作者: 暂无</p>
+                           <%}%>
+                           <%if(result[i].sample_video){ %>
+                              <p>谱面确认链接：<%=result[i].sample_video%></p>
+                           <%}%>
+                           <%if(!result[i].sample_video){ %>
+                              <p>谱面确认链接：暂无</p>
+                           <%}%>
+                     </div>
+                     <img src="<%=result[i].qr_path%>" id="qr<%=i%>" hidden/>
+                     <a id="btn<%=i%>" class="btn blue-grey darken-3" onclick="show('<%=i%>')">显示二维码</a><br>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   <%}%>
+   <%if(page > 1){ %>
+      <a id="pre_page" class="btn light-blue lighten-2" onclick="page(<%=page%>-1)">上一页</a>
+   <%}%>
+   <%if(page < pn){ %>
+      <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=page%>+1)">下一页</a>
+   <%}%>
+   </div>
+   <script type="text/javascript">
+      function show(id) {
+         document.getElementById("qr"+id).hidden = false;
+         var btn = document.getElementById("btn"+id);
+         btn.parentNode.removeChild(btn);
+      }
+      function page(page){
+         window.location.href = "http://114.116.8.182:80/page?page=" + page + "&&sn=<%=query.song_name%>&&sa=<%=query.song_author%>&&sp=<%=query.spectrum_author%>&&sd=<%=query.song_difficulty%>";
+      }
+   </script>
+   
+   <footer class="page-footer light-blue darken-2">
+      <div class="container">
+          <div class="row">
+              <div class="col l6 m6 s12">
+                  <h5 class="white-text">联系作者</h5>
+                  <ul>
+                      <a class="grey-text text-lighten-4">大狱传奇 SuperGP</a><br>
+                      <a class="grey-text text-lighten-4">1363028533@qq.com</a><br>
+                  </ul>
+              </div>
+              <div class="col l4 m4 offset-l2 s12">
+                  <h5 class="white-text">链接</h5>
+                  <ul>
+                      <li><a class="grey-text text-lighten-3" href="https://bxdyf.gamekuaishou.com/" target="_blank">不休的音符官网</a></li>
+                      <li><a class="grey-text text-lighten-3" href="https://www.biligame.com/detail/?id=105934&sourceFrom=1112&spm_id_from=333.337.0.0" target="_blank">Bilibili 专区</a></li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+      <div class="row">
+          <div class="footer-copyright col s12">
+              <div class="container">
+                  &nbsp;© 2022 Copyright SuperGP
+              </div>
+          </div>
+      </div>
+   </footer>
+</body>
+</html>
