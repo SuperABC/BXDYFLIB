@@ -1,21 +1,18 @@
-var express=require("express");
-var app=express();
-var router=require("./router")
-
-app.set("view engine","ejs");
-
-app.use(express.static("./upload"));
-app.use(express.static("./materialize"));
-app.use(express.static("/public"));
-
-
-app.get("/",router.indexPage);
-app.get("/upload",router.upload);
-app.post("/send",router.send);
-app.post("/result",router.result);
-app.get("/page",router.page);
-app.use(function (req,res) {
-    res.render("404");
-});
-
-app.listen(80);
+var jwt = require('jsonwebtoken')
+let user = { username: 'wkj' }; // 要生成token的主题信息
+let secretOrPrivateKey = "suiyi" // 这是加密的key（密钥） 
+let token = jwt.sign(user, secretOrPrivateKey, {
+        expiresIn: 1  // 1小时过期
+    });
+var oneSecond = 1000;
+setTimeout(function() {
+    let ret = {}; // 从token获取的主题信息
+    jwt.verify(token, secretOrPrivateKey, (err, decode) => {
+      if(err){
+        ret = err
+      } else {
+        ret = decode
+      }
+    })
+    console.log(ret)
+}, oneSecond);
