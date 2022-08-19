@@ -17,8 +17,10 @@
     
     <nav class="nav-wrapper light-blue lighten-2">
         <div class="container">
-            <a href="http://114.116.8.182:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
-            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
+            <a href="http://localhost:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库&nbsp;</a>
+            <a class="right waves-effect waves-light" style="font-size:24px" onclick="register()">&nbsp;注册&nbsp;</a>
+            <a class="right waves-effect waves-light" style="font-size:24px" onclick="login()">&nbsp;登录&nbsp;</a>
+            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
             <div id="modal1" class="modal">
                 <div class="modal-content black-text">
                     <h4>作者留言</h4>
@@ -64,6 +66,32 @@
             <source src="https://ali-static.game.yximgs.com/udata/pkg/KS-GAME-WEB/gameweb/1611316238382_.mp4" type="video/mp4">
         </video>
     </div>
+
+    <script type="text/javascript">
+        function createXmlHttpRequest(){    
+            if(window.ActiveXObject){
+                return new ActiveXObject("Microsoft.XMLHTTP");    
+            }else if(window.XMLHttpRequest){ 
+                return new XMLHttpRequest();    
+            }    
+        } 
+        function register() {
+            alert("reg");
+        }
+        function login() {
+            xmlHttpRequest = createXmlHttpRequest();
+            xmlHttpRequest.onreadystatechange = zswFun;
+            xmlHttpRequest.open("POST","http://localhost/login",true);
+            xmlHttpRequest.setRequestHeader('content-type', 'application/json');
+            xmlHttpRequest.send(JSON.stringify({"user":"supergp","pw":"123456"}));
+        }
+        function zswFun(){    
+            if(xmlHttpRequest.readyState == 4 && xmlHttpRequest.status == 200){    
+                var b = xmlHttpRequest.responseText;    
+                alert(b);      
+            }    
+        }  
+     </script>
 
     <footer class="page-footer light-blue darken-2">
         <div class="container">

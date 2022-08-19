@@ -1,18 +1,22 @@
-var PAGE_SIZE = 5;
+var PAGE_SIZE = 20;
 
-var fs=require("fs");
+var fs = require('fs');
 var url = require('url');
-var formidable=require("formidable");
+var formidable = require('formidable');
 var mysql = require('mysql')
 var decodeImage = require('jimp').read;
 var qrcodeReader = require('qrcode-reader');
+var jwt = require('jsonwebtoken')
+var querystring = require('querystring')
+
 var db = mysql.createPool({
     host: '127.0.0.1',
     user: 'root',
     password: 'password',
     database: 'spectrum'
   })
-exports.indexPage=function(req,res){
+
+exports.index=function(req,res){
     db.query("select count(*) from spectrum.qrcode", (err, results) => {
         if(err){
             return;
@@ -24,6 +28,18 @@ exports.indexPage=function(req,res){
         });
     });
 };
+exports.login=function(req,res){
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        console.log(postData);
+    });
+    res.json({
+        "data":"success"
+    });
+}
 exports.upload=function (req,res) {
     res.render("upload", {
         "msg": {}
@@ -221,6 +237,7 @@ exports.result=function (req,res) {
             var qrs = [];
             for(var i in results.slice(0, PAGE_SIZE)){
                 qrs.push({
+                    "id" : results[i].id,
                     "qr_path" : results[i].qr_path,
                     "song_name" : results[i].song_name,
                     "song_author" : results[i].song_author,
@@ -232,7 +249,7 @@ exports.result=function (req,res) {
             res.render("search",{
                 "result" : qrs,
                 "page" : 1,
-                "pn" : results.length / PAGE_SIZE,
+                "pn" : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
                 "total" : results.length,
                 "query" : {
                     "song_name" : fields.song_name,
@@ -288,6 +305,7 @@ exports.page=function (req,res) {
         var resultTmp = results.slice((args.page - 1) * PAGE_SIZE, args.page * PAGE_SIZE);
         for(var i in resultTmp){
             qrs.push({
+                "id" : resultTmp[i].id,
                 "qr_path" : resultTmp[i].qr_path,
                 "song_name" : resultTmp[i].song_name,
                 "song_author" : resultTmp[i].song_author,
@@ -299,7 +317,7 @@ exports.page=function (req,res) {
         res.render("search",{
             "result":qrs,
             "page" : args.page,
-            "pn" : results.length / PAGE_SIZE,
+            "pn" : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
             "total" : results.length,
             "query" : {
                 "song_name" : args.sn,
@@ -307,6 +325,27 @@ exports.page=function (req,res) {
                 "spectrum_author" : args.sp,
                 "song_difficulty" : args.sd
             }
+        });
+    });
+}
+exports.detail=function (req,res) {
+    var args = url.parse(req.url, true).query;
+    var sql = 'SELECT * from qrcode where id = ' + args.id;
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+          return console.log(err.message);
+        }
+        var qrs = {
+            "qr_path" : results[0].qr_path,
+            "song_name" : results[0].song_name,
+            "song_author" : results[0].song_author,
+            "song_bpm" : results[0].song_bpm,
+            "spectrum_author" : results[0].spectrum_author,
+            "sample_video" : results[0].sample_video
+        };
+        res.render("detail",{
+            "result":qrs
         });
     });
 }
