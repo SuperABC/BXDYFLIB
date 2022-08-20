@@ -26,6 +26,8 @@
 <body>
    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
    <script type="text/javascript" src="js/materialize.min.js"></script>
+   <script type="text/javascript" src="post.js"></script>
+   <script type="text/javascript" src="log.js"></script>
    <script type="text/javascript">
        $(document).ready(function(){
            $('.modal').modal();
@@ -34,18 +36,18 @@
 
    <nav class="nav-wrapper light-blue lighten-2">
       <div class="container">
-          <a href="http://localhost:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
-          <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
-          <div id="modal1" class="modal">
-              <div class="modal-content black-text">
+            <a onclick="home()" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
+            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
+            <div id="modal1" class="modal">
+               <div class="modal-content black-text">
                   <h4>作者留言</h4>
                   <br>
                   <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
                   <p>寻求用爱发电的前端设计师合作ovo~</p>
-              </div>
-          </div>
+               </div>
+            </div>
       </div>
-  </nav>
+   </nav>
   
    <div class="container">
    <div class="row">

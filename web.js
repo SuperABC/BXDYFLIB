@@ -10,9 +10,13 @@ app.use(express.static("./util"));
 app.use(express.static("/public"));
 
 
-app.get("/",router.index);
-app.post("/login",router.login);
-app.get("/upload",router.upload);
+app.get("/",router.home);
+app.get("/index",router.home);
+app.post("/index",router.index);
+app.get("/login",router.login);
+app.post("/sign",router.sign);
+app.post("/verify",router.verify);
+app.post("/upload",router.upload);
 app.post("/send",router.send);
 app.post("/result",router.result);
 app.get("/page",router.page);

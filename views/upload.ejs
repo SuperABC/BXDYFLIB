@@ -9,6 +9,8 @@
 <body>
    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
    <script type="text/javascript" src="js/materialize.min.js"></script>
+   <script type="text/javascript" src="post.js"></script>
+   <script type="text/javascript" src="log.js"></script>
    <script type="text/javascript">
        $(document).ready(function(){
            $('.modal').modal();
@@ -17,23 +19,31 @@
 
    <nav class="nav-wrapper light-blue lighten-2">
       <div class="container">
-          <a href="http://localhost:80/" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
-          <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">作者留言</a>
-          <div id="modal1" class="modal">
-              <div class="modal-content black-text">
+            <a onclick="home()" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
+            <%if(!verify.username){%>
+                <a class="right waves-effect waves-light" style="font-size:24px">&nbsp;注册&nbsp;</a>
+                <a class="right waves-effect waves-light" style="font-size:24px" href="login">&nbsp;登录&nbsp;</a>
+            <%}%>
+            <%if(verify.username){%>
+                <a class="right waves-effect waves-light" style="font-size:24px" onclick="logout()">&nbsp;登出&nbsp;</a>
+                <a class="right waves-effect waves-light" style="font-size:24px">&nbsp;<%=verify.username%>&nbsp;</a>
+            <%}%>
+            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
+            <div id="modal1" class="modal">
+               <div class="modal-content black-text">
                   <h4>作者留言</h4>
                   <br>
                   <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
                   <p>寻求用爱发电的前端设计师来合作~</p>
-              </div>
-          </div>
+               </div>
+            </div>
       </div>
-  </nav>
-  
+   </nav>
+
    <div class="container">
       <div class="row">
       </div>
-      <form action="send" method="post" enctype="multipart/form-data" onsubmit="return verify()">
+      <form name="form" action="send" method="post" enctype="multipart/form-data" onsubmit="return verify()">
          <label style="font-size: 20px">请选择图片（必填，大小限制为2M）</label>
          <div class="file-field input-field">
             <div class="btn light-blue lighten-2">
@@ -88,6 +98,13 @@
                }
             }
          }
+
+         var form = document.getElementsByName("form");
+         var newElement = document.createElement("textarea");
+         newElement.hidden = true;
+         newElement.name = "token";
+         newElement.value = window.localStorage.getItem('token');
+         form[0].appendChild(newElement);
       }
    </script>
 

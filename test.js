@@ -4,7 +4,7 @@ let secretOrPrivateKey = "suiyi" // 这是加密的key（密钥）
 let token = jwt.sign(user, secretOrPrivateKey, {
         expiresIn: 1  // 1小时过期
     });
-var oneSecond = 1000;
+var oneSecond = 100;
 setTimeout(function() {
     let ret = {}; // 从token获取的主题信息
     jwt.verify(token, secretOrPrivateKey, (err, decode) => {
