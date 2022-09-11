@@ -13,71 +13,106 @@ var db = mysql.createPool({
     user: 'root',
     password: 'password',
     database: 'spectrum'
-  })
-var jwtkey = "sg";
+});
+var jwtkey = 'sg';
 
 function getQueryVariable(url, variable) {
-    var query = url;
-    var vars = query.split("&");
+    var query = decodeURI(url);
+    var vars = query.split('&');
     for (var i=0;i<vars.length;i++) {
-        var pair = vars[i].split("=");
+        var pair = vars[i].split('=');
         if(pair[0] == variable){return pair[1];}
     }
 }
 
-//get html
+// get html
+// return:
+// {
+//     num:曲谱总数
+//     verify:用户信息验证
+// }
 exports.home=function(req,res){
-    db.query("select count(*) from spectrum.qrcode", (err, results) => {
+    db.query('select count(*) from spectrum.qrcode', (err, results) => {
         if(err){
+            console.log(sql)
+            console.log(err.message);
+            console.log();
+            res.render('index', {
+                'num':0,
+                'verify': {}
+            });
             return;
         }
-        res.render("index", {
-            "total":{
-                "num":results[0]['count(*)']
-            },
-            "verify": {}
+        res.render('index', {
+            'num':results[0]['count(*)'],
+            'verify': {}
         });
     });
 };
-//post html
+// post html
+// input:
+// {
+//     token:用户令牌
+// }
+// return:
+// {
+//     num:曲谱总数
+//     verify:用户信息验证
+// }
 exports.index=function(req,res){
-    db.query("select count(*) from spectrum.qrcode", (err, results) => {
-        if(err){
-            return;
-        }
-
-        var postData = '';
-        req.on('data', function (chuck) {  
-            postData += chuck;
-        });
-        req.on('end', function () {
-            var token = getQueryVariable(postData, "token");
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        db.query('select count(*) from spectrum.qrcode', (err, results) => {
+            if(err){
+                console.log(sql)
+                console.log(err.message);
+                console.log();
+                res.render('index', {
+                    'num':results[0]['count(*)'],
+                    'verify': {}
+                });
+                return;
+            }
+            var token = getQueryVariable(postData, 'token');
             jwt.verify(token, jwtkey, (err, decode) => {
                 if(err){
-                    res.render("index", {
-                        "total":{
-                            "num":results[0]['count(*)']
-                        },
-                        "verify": {}
+                    res.render('index', {
+                        'num':results[0]['count(*)'],
+                        'verify': {}
                     });
                 }
                 else {
-                    res.render("index", {
-                        "total":{
-                            "num":results[0]['count(*)']
-                        },
-                        "verify": decode
+                    res.render('index', {
+                        'num':results[0]['count(*)'],
+                        'verify': decode
                     });
                 }
             });
         });
     });
 };
-//get html
+// get html
 exports.login=function(req,res){
-    res.render("login", {})
+    res.render('login', {})
 }
-//post data
+// get html
+exports.register=function(req,res){
+    res.render('register', {})
+}
+// post data
+// input:
+// {
+//     user:用户名,
+//     pw:密码
+// }
+// return:
+// {
+//     result:登录结果
+//     token:用户令牌
+// }
 exports.sign=function(req,res){
     var postData = '';
     req.on('data', function (chuck) {  
@@ -85,71 +120,176 @@ exports.sign=function(req,res){
     });
     req.on('end', function () {
         var data = JSON.parse(postData);
-        if(data['user'] == "supergp" && data['pw'] == "123456"){
-            let user = { username: 'supergp' };
-            let token = jwt.sign(user, jwtkey, {
-                expiresIn: 60*60*1
-            });
-            res.json({
-                "result":"success",
-                "token":token
-            });
-        }
-        else{
-            res.json({
-                "result":"fail",
-                "token":""
-            });
-        }
+        var sql = 'select * from user where username = \'' + data['user'] + '\' and pwsha = \'' + data['pw'] + '\'';
+        db.query(sql, (err, results) => {
+            if(err){
+                console.log(sql)
+                console.log(err.message);
+                console.log();
+                res.json({
+                    'result':'fail',
+                    'token':''
+                });
+                return;
+            }
+            if(results.length > 0){
+                let user = { username: data['user'] };
+                let token = jwt.sign(user, jwtkey, {
+                    expiresIn: 60*60*1
+                });
+                res.json({
+                    'result':'success',
+                    'token':token
+                });
+            }
+            else{
+                res.json({
+                    'result':'fail',
+                    'token':''
+                });
+            }
+        });
     });
 }
-//post data
+// post data
+// input:
+// {
+//     user:用户名,
+//     pw:密码,
+//     nick:昵称,
+//     phone:手机号
+// }
+// return:
+// {
+//     result:注册结果
+//     msg:结果信息
+// }
+exports.create=function(req,res){
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        var data = JSON.parse(postData);
+        var user = data['user'];
+        var pw = data['pw'];
+        var phone = data['phone'];
+        var nick = data['nick'];
+        var sql = 'select * from user where username = \'' + user + '\' or phone = \'' + phone  + '\' or nick = \'' + nick + '\'';
+        db.query(sql, (err, results) => {
+            if(err){
+                console.log(sql)
+                console.log(err.message);
+                console.log();
+                res.json({
+                    'result':'fail',
+                    'msg':'数据库查询异常。'
+                });
+                return;
+            }
+            if(results.length > 0){
+                res.json({
+                    'result':'fail',
+                    'msg':'用户已存在。'
+                });
+            }
+            else{
+                sql = 'insert into user(username, pwsha, nick, phone) values(\'' +
+                    user + '\', \'' + pw + '\', \'' + nick + '\', \'' + phone + '\')';
+                db.query(sql, (err, results) => {
+                    if(err){
+                        console.log(sql)
+                        console.log(err.message);
+                        console.log();
+                        res.json({
+                            'result':'fail',
+                            'msg':'数据库查询异常。'
+                        });
+                        return;
+                    }
+                    res.json({
+                        'result':'success',
+                        'msg':''
+                    });
+                });
+            }
+        });
+    });
+}
+// post data
+// input:
+// {
+//     token:用户令牌
+// }
+// return:
+// {
+//     result:验证结果
+// }
 exports.verify=function (req,res) {
     var postData = '';
     req.on('data', function (chuck) {  
         postData += chuck;
     });
     req.on('end', function () {
-        var token = JSON.parse(postData)["token"];
+        var token = JSON.parse(postData)['token'];
         jwt.verify(token, jwtkey, (err, decode) => {
             if(err){
                 res.json({
-                    "result":"fail"
+                    'result':'fail'
                 });
             }
             else {
                 res.json({
-                    "result":"success"
+                    'result':'success'
                 });
             }
         });
     });
 }
-//post html
+// post html
+// input:
+// {
+//     token:用户令牌
+// }
+// return:
+// {
+//     msg:结果消息
+//     verify:用户信息验证
+// }
 exports.upload=function (req,res) {
     var postData = '';
     req.on('data', function (chuck) {  
         postData += chuck;
     });
     req.on('end', function () {
-        var token = getQueryVariable(postData, "token");
+        var token = getQueryVariable(postData, 'token');
         jwt.verify(token, jwtkey, (err, decode) => {
             if(err){
-                res.render("upload", {
-                    "msg": {},
-                    "verify": {}
+                res.render('upload', {
+                    'msg': {},
+                    'verify': {}
                 });
             }
             else {
-                res.render("upload", {
-                    "msg": {},
-                    "verify": decode
+                res.render('upload', {
+                    'msg': {},
+                    'verify': decode
                 });
             }
         });
     });
 }
-//post html
+// post html
+// input:
+// {
+//     form:上传信息
+//     token:用户令牌
+// }
+// return:
+// {
+//     msg:结果消息
+//     verify:用户信息验证
+// }
 exports.send=function (req,res) {
     var form=new formidable.IncomingForm();
     form.encoding='utf-8';
@@ -166,9 +306,9 @@ exports.send=function (req,res) {
     form.parse(req,function (err,fields,files,next) {
         if(err){
             fs.unlink(files.qr_code. _writeStream.path, function(){});
-            res.render("upload", {
-                "msg": { msg : "数据有误"},
-                "verify":{}
+            res.render('upload', {
+                'msg': { msg : '数据有误'},
+                'verify':{}
             });
             return;
         }
@@ -181,18 +321,18 @@ exports.send=function (req,res) {
             var size=parseInt(files.qr_code.size);
             if (size>2*1024*1024){
                 fs.unlink(files.qr_code. _writeStream.path, function(){});
-                res.render("upload", {
-                    "msg": { msg : "图片过大"},
-                    "verify":verify
+                res.render('upload', {
+                    'msg': { msg : '图片过大'},
+                    'verify':verify
                 })
                 return;
             }
             decodeImage(files.qr_code. _writeStream.path,function(err,image){
                 if(err){
                     fs.unlink(files.qr_code. _writeStream.path, function(){});
-                    res.render("upload", {
-                        "msg": { msg : "图片格式有误"},
-                        "verify":verify
+                    res.render('upload', {
+                        'msg': { msg : '图片格式有误'},
+                        'verify':verify
                     })
                     return;
                 }
@@ -200,38 +340,41 @@ exports.send=function (req,res) {
                 decodeQR.callback = function(err, result) {
                     if (err) {
                         fs.unlink(files.qr_code. _writeStream.path, function(){});
-                        res.render("upload", {
-                            "msg": { msg : "无法识别二维码"},
-                            "verify":verify
+                        res.render('upload', {
+                            'msg': { msg : '无法识别二维码'},
+                            'verify':verify
                         })
                         return;
                     }
                     if (result){
                         var qr_content = result.result;
-                        if(result.result.search("lsopenapi.xnhdgame.com")==-1){
+                        if(result.result.search('lsopenapi.xnhdgame.com')==-1){
                             fs.unlink(files.qr_code. _writeStream.path, function(){});
-                            res.render("upload", {
-                                "msg": { msg : "该二维码不是不休的音符二维码"},
-                                "verify":verify
+                            res.render('upload', {
+                                'msg': { msg : '该二维码不是不休的音符二维码'},
+                                'verify':verify
                             })
                             return;
                         }
                         var sql7 = 'select * from spectrum.qrcode where qr_content = \'' + qr_content + '\'';
                         db.query(sql7, (err, results) => {
                             if (err) {
+                                console.log(sql)
+                                console.log(err.message);
+                                console.log();
                                 fs.unlink(files.qr_code. _writeStream.path, function(){});
-                                res.render("upload", {
-                                    "msg": { msg : "数据有误"},
-                                    "verify":verify
+                                res.render('upload', {
+                                    'msg': { msg : '数据库查询异常'},
+                                    'verify':verify
                                 });
                                 return;
                             }
     
                             if(results.length > 0){
                                 fs.unlink(files.qr_code. _writeStream.path, function(){});
-                                res.render("upload", {
-                                    "msg": { msg : "该曲谱二维码已收录，请勿重复上传"},
-                                    "verify":verify
+                                res.render('upload', {
+                                    'msg': { msg : '该曲谱二维码已收录，请勿重复上传'},
+                                    'verify':verify
                                 });
                                 return;
                             }
@@ -273,10 +416,13 @@ exports.send=function (req,res) {
                             }
                             db.query(sql1 + sql2 + sql3, (err, results) => {
                                 if (err) {
-                                    fs.unlink("upload/" + file_name, function(){});
-                                    res.render("upload", {
-                                        "msg": { msg : "数据冲突"},
-                                        "verify":verify
+                                    console.log(sql)
+                                    console.log(err.message);
+                                    console.log();
+                                    fs.unlink('upload/' + file_name, function(){});
+                                    res.render('upload', {
+                                        'msg': { msg : '数据库插入异常'},
+                                        'verify':verify
                                     });
                                     return;
                                 }
@@ -291,14 +437,21 @@ exports.send=function (req,res) {
                                         sql5 += dateFolder + file_name;
                                         db.query(sql4 + sql5 + sql6, (err, results) => {
                                             if (err) {
+                                                console.log(sql)
+                                                console.log(err.message);
+                                                console.log();
+                                                res.json({
+                                                    'msg':{ msg : '数据库插入异常'},
+                                                    'verify':verify
+                                                });
                                                 return;
                                             }
                                         });
                                     }
                                 }
-                                res.render("upload", {
-                                    "msg": { msg : "上传成功"},
-                                    "verify":verify
+                                res.render('upload', {
+                                    'msg': { msg : '上传成功'},
+                                    'verify':verify
                                 })
                                 return;
                             });
@@ -310,166 +463,289 @@ exports.send=function (req,res) {
         });
     });
 }
-//post html
+// post html
+// input:
+// {
+//     form:查询信息
+//     token:用户令牌
+// }
+// return:
+// {
+//     result:查询结果
+//     page:当前页面
+//     total:页面总数
+//     query:查询信息
+//     verify:用户信息验证
+// }
 exports.result=function (req,res) {
     var form=new formidable.IncomingForm();
     form.encoding='utf-8';
     form.parse(req,function (err,fields,files,next) {
         if (err){
+            res.render('search', {
+                'result' : [],
+                'page' : 1,
+                'total' : 1,
+                'query' : {
+                    'song_name' : fields.song_name,
+                    'song_author' : fields.song_author,
+                    'spectrum_author' : fields.spectrum_author,
+                    'song_difficulty' : fields.song_difficulty
+                },
+                'verify':{}
+            });
             return;
         };
-        var sql = 'SELECT * from qrcode';
-        var where = true;
-        if(fields.song_name){
-            if(where){
-                sql += ' where ';
-                where = false;
+        var token = fields.token;
+        var verify = {}
+        jwt.verify(token, jwtkey, (err, decode) => {
+            if(!err){
+                verify = decode
             }
-            else sql += ' and '
-            sql += 'song_name like \'%' + fields.song_name + '%\'';
-        }
-        if(fields.song_author){
-            if(where){
-                sql += ' where ';
-                where = false;
-            }
-            else sql += ' and '
-            sql += 'song_author like \'%' + fields.song_author + '%\'';
-        }
-        if(fields.spectrum_author){
-            if(where){
-                sql += ' where ';
-                where = false;
-            }
-            else sql += ' and '
-            sql += 'spectrum_author like \'%' + fields.spectrum_author + '%\'';
-        }
-        if(fields.song_difficulty){
-            if(where){
-                sql += ' where ';
-                where = false;
-            }
-            else sql += ' and '
-            sql += fields.song_difficulty + ' in (select song_difficulty from spectrum.difficulty where spectrum.difficulty.song_id = spectrum.qrcode.id)';
-        }
-        db.query(sql, (err, results) => {
-            if (err) {
-              return console.log(err.message);
-            }
-            var qrs = [];
-            for(var i in results.slice(0, PAGE_SIZE)){
-                qrs.push({
-                    "id" : results[i].id,
-                    "qr_path" : results[i].qr_path,
-                    "song_name" : results[i].song_name,
-                    "song_author" : results[i].song_author,
-                    "song_bpm" : results[i].song_bpm,
-                    "spectrum_author" : results[i].spectrum_author,
-                    "sample_video" : results[i].sample_video
-                });
-            }
-            res.render("search",{
-                "result" : qrs,
-                "page" : 1,
-                "pn" : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
-                "total" : results.length,
-                "query" : {
-                    "song_name" : fields.song_name,
-                    "song_author" : fields.song_author,
-                    "spectrum_author" : fields.spectrum_author,
-                    "song_difficulty" : fields.song_difficulty
+            var sql = 'select * from qrcode';
+            var where = true;
+            if(fields.song_name){
+                if(where){
+                    sql += ' where ';
+                    where = false;
                 }
-            });
-        });
-    });
-}
-//post html
-exports.page=function (req,res) {
-    var args = url.parse(req.url, true).query;
-    var sql = 'SELECT * from qrcode';
-    var where = true;
-    if(args.sn){
-        if(where){
-            sql += ' where ';
-            where = false;
-        }
-        else sql += ' and '
-        sql += 'song_name like \'%' + args.sn + '%\'';
-    }
-    if(args.sa){
-        if(where){
-            sql += ' where ';
-            where = false;
-        }
-        else sql += ' and '
-        sql += 'song_author like \'%' + args.sa + '%\'';
-    }
-    if(args.sp){
-        if(where){
-            sql += ' where ';
-            where = false;
-        }
-        else sql += ' and '
-        sql += 'spectrum_author like \'%' + args.sp + '%\'';
-    }
-    if(args.sd){
-        if(where){
-            sql += ' where ';
-            where = false;
-        }
-        else sql += ' and '
-        sql += args.sd + ' in (select song_difficulty from spectrum.difficulty where spectrum.difficulty.song_id = spectrum.qrcode.id)';
-    }
-    db.query(sql, (err, results) => {
-        if (err) {
-          return console.log(err.message);
-        }
-        var qrs = [];
-        var resultTmp = results.slice((args.page - 1) * PAGE_SIZE, args.page * PAGE_SIZE);
-        for(var i in resultTmp){
-            qrs.push({
-                "id" : resultTmp[i].id,
-                "qr_path" : resultTmp[i].qr_path,
-                "song_name" : resultTmp[i].song_name,
-                "song_author" : resultTmp[i].song_author,
-                "song_bpm" : resultTmp[i].song_bpm,
-                "spectrum_author" : resultTmp[i].spectrum_author,
-                "sample_video" : resultTmp[i].sample_video
-            });
-        }
-        res.render("search",{
-            "result":qrs,
-            "page" : args.page,
-            "pn" : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
-            "total" : results.length,
-            "query" : {
-                "song_name" : args.sn,
-                "song_author" : args.sa,
-                "spectrum_author" : args.sp,
-                "song_difficulty" : args.sd
+                else sql += ' and '
+                sql += 'song_name like \'%' + fields.song_name + '%\'';
             }
+            if(fields.song_author){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += 'song_author like \'%' + fields.song_author + '%\'';
+            }
+            if(fields.spectrum_author){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += 'spectrum_author like \'%' + fields.spectrum_author + '%\'';
+            }
+            if(fields.song_difficulty){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += fields.song_difficulty + ' in (select song_difficulty from spectrum.difficulty where spectrum.difficulty.song_id = spectrum.qrcode.id)';
+            }
+            db.query(sql, (err, results) => {
+                if (err) {
+                    console.log(sql)
+                    console.log(err.message);
+                    console.log();
+                    res.render('search',{
+                        'result' : [],
+                        'page' : 1,
+                        'total' : 1,
+                        'query' : {},
+                        'verify':verify
+                    });
+                    return;
+                }
+                var qrs = [];
+                for(var i in results.slice(0, PAGE_SIZE)){
+                    qrs.push({
+                        'id' : results[i].id,
+                        'qr_path' : results[i].qr_path,
+                        'song_name' : results[i].song_name,
+                        'song_author' : results[i].song_author,
+                        'song_bpm' : results[i].song_bpm,
+                        'spectrum_author' : results[i].spectrum_author,
+                        'sample_video' : results[i].sample_video
+                    });
+                }
+                res.render('search',{
+                    'result' : qrs,
+                    'page' : 1,
+                    'total' : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
+                    'query' : {
+                        'song_name' : fields.song_name,
+                        'song_author' : fields.song_author,
+                        'spectrum_author' : fields.spectrum_author,
+                        'song_difficulty' : fields.song_difficulty
+                    },
+                    'verify':verify
+                });
+            });
         });
     });
 }
-//post html
+// post html
+// input:
+// {
+//     song_name:歌曲名,
+//     song_author:歌曲作者,
+//     spectrum_author:曲谱作者,
+//     song_difficulty:歌曲难度,
+//     page:当前页面,
+//     token:用户令牌
+// }
+// return:
+// {
+//     result:查询结果
+//     page:当前页面
+//     total:页面总数
+//     query:查询信息
+//     verify:用户信息验证
+// }
+exports.page=function (req,res) {
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        var token = getQueryVariable(postData, 'token');
+        var verify = {}
+        jwt.verify(token, jwtkey, (err, decode) => {
+            if(!err){
+                verify = decode;
+            }
+            var sql = 'SELECT * from qrcode';
+            var where = true;
+            var song_name = getQueryVariable(postData, 'song_name');
+            var song_author = getQueryVariable(postData, 'song_author');
+            var spectrum_author = getQueryVariable(postData, 'spectrum_author');
+            var song_difficulty = getQueryVariable(postData, 'song_difficulty');
+            if(song_name){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += 'song_name like \'%' + song_name + '%\'';
+            }
+            if(song_author){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += 'song_author like \'%' + song_author + '%\'';
+            }
+            if(spectrum_author){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += 'spectrum_author like \'%' + spectrum_author + '%\'';
+            }
+            if(song_difficulty){
+                if(where){
+                    sql += ' where ';
+                    where = false;
+                }
+                else sql += ' and '
+                sql += song_difficulty + ' in (select song_difficulty from spectrum.difficulty where spectrum.difficulty.song_id = spectrum.qrcode.id)';
+            }
+            db.query(sql, (err, results) => {
+                if (err) {
+                    console.log(sql)
+                    console.log(err.message);
+                    console.log();
+                    res.render('search',{
+                        'result' : [],
+                        'page' : 1,
+                        'total' : 1,
+                        'query' : {},
+                        'verify':verify
+                    });
+                    return;
+                }
+                var qrs = [];
+                var page = getQueryVariable(postData, 'page');
+                var resultTmp = results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+                for(var i in resultTmp){
+                    qrs.push({
+                        'id' : resultTmp[i].id,
+                        'qr_path' : resultTmp[i].qr_path,
+                        'song_name' : resultTmp[i].song_name,
+                        'song_author' : resultTmp[i].song_author,
+                        'song_bpm' : resultTmp[i].song_bpm,
+                        'spectrum_author' : resultTmp[i].spectrum_author,
+                        'sample_video' : resultTmp[i].sample_video
+                    });
+                }
+                res.render('search',{
+                    'result':qrs,
+                    'page' : page,
+                    'total' : Math.max(1, Math.ceil(results.length / PAGE_SIZE)),
+                    'query' : {
+                        'song_name' : song_name,
+                        'song_author' : song_author,
+                        'spectrum_author' : spectrum_author,
+                        'song_difficulty' : song_difficulty
+                    },
+                    'verify':verify
+                });
+            });
+        });
+    });
+}
+// post html
+// input:
+// {
+//     id:曲谱索引,
+//     token:用户令牌
+// }
+// return:
+// {
+//     result:曲谱信息
+//     verify:用户信息验证
+// }
 exports.detail=function (req,res) {
-    var args = url.parse(req.url, true).query;
-    var sql = 'SELECT * from qrcode where id = ' + args.id;
-    
-    db.query(sql, (err, results) => {
-        if (err) {
-          return console.log(err.message);
-        }
-        var qrs = {
-            "qr_path" : results[0].qr_path,
-            "song_name" : results[0].song_name,
-            "song_author" : results[0].song_author,
-            "song_bpm" : results[0].song_bpm,
-            "spectrum_author" : results[0].spectrum_author,
-            "sample_video" : results[0].sample_video
-        };
-        res.render("detail",{
-            "result":qrs
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        var token = getQueryVariable(postData, 'token');
+        var verify = {}
+        jwt.verify(token, jwtkey, (err, decode) => {
+            if(!err){
+                verify = decode;
+            }
+            var sql = 'SELECT * from qrcode where id = ' + getQueryVariable(postData, 'id');
+            
+            db.query(sql, (err, results) => {
+                if (err) {
+                    console.log(sql)
+                    console.log(err.message);
+                    console.log();
+                    res.render('detail',{
+                        'result':{
+                            'qr_path':"",
+                            'song_name':"",
+                            'song_author':"",
+                            'song_bpm':"",
+                            'spectrum_author':"",
+                            'sample_video':""
+                        },
+                        'verify':verify
+                    });
+                    return;
+                }
+                var qrs = {
+                    'qr_path' : results[0].qr_path,
+                    'song_name' : results[0].song_name,
+                    'song_author' : results[0].song_author,
+                    'song_bpm' : results[0].song_bpm,
+                    'spectrum_author' : results[0].spectrum_author,
+                    'sample_video' : results[0].sample_video
+                };
+                res.render('detail',{
+                    'result':qrs,
+                    'verify':verify
+                });
+            });
         });
     });
 }

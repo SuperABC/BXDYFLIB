@@ -23,7 +23,7 @@
       }
   </style>
 </head>
-<body>
+<body onload="load()">
    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
    <script type="text/javascript" src="js/materialize.min.js"></script>
    <script type="text/javascript" src="post.js"></script>
@@ -37,30 +37,38 @@
    <nav class="nav-wrapper light-blue lighten-2">
       <div class="container">
             <a onclick="home()" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库</a>
-            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
-            <div id="modal1" class="modal">
-               <div class="modal-content black-text">
-                  <h4>作者留言</h4>
-                  <br>
-                  <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
-                  <p>寻求用爱发电的前端设计师合作ovo~</p>
+            <%if(!verify.username){%>
+               <a class="right waves-effect waves-light" style="font-size:24px" href="register">&nbsp;注册&nbsp;</a>
+               <a class="right waves-effect waves-light" style="font-size:24px" href="login">&nbsp;登录&nbsp;</a>
+               <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
+               <div id="modal1" class="modal">
+                  <div class="modal-content black-text">
+                     <h4>作者留言</h4>
+                     <br>
+                     <p>待开发内容：认证谱师、曲谱打分、曲谱评论、热门推荐</p>
+                     <p>寻求用爱发电的前端设计师来合作~</p>
+                  </div>
                </div>
-            </div>
+           <%}%>
+           <%if(verify.username){%>
+               <a class="right waves-effect waves-light" style="font-size:24px" onclick="logout()">&nbsp;登出&nbsp;</a>
+               <a class="right waves-effect waves-light" style="font-size:24px">&nbsp;<%=verify.username%>&nbsp;</a>
+           <%}%>
       </div>
    </nav>
   
    <div class="container">
    <div class="row">
    </div>
-   <form action="result" method="post" enctype="multipart/form-data">
+   <form name="form" action="result" method="post" enctype="multipart/form-data" onsubmit="return verify()">
       <label style="font-size: 20px">查询歌曲名称</label>
-      <input type="text" name="song_name"><br>
+      <input type="text" id="song_name" name="song_name"><br>
       <label style="font-size: 20px">查询歌曲作者</label>
-      <input type="text" name="song_author"><br>
+      <input type="text" id="song_author" name="song_author"><br>
       <label style="font-size: 20px">查询曲谱作者</label>
-      <input type="text" name="spectrum_author"><br>
+      <input type="text" id="spectrum_author" name="spectrum_author"><br>
       <label style="font-size: 20px">查询难度</label>
-      <input type="text" name="song_difficulty"><br>
+      <input type="text" id="song_difficulty" name="song_difficulty"><br>
       <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="搜索曲目">
    </form>
    <div class="row">
@@ -121,26 +129,53 @@
    <%if(page <= 1){ %>
       <a id="pre_page" class="btn light-blue lighten-2" onclick="page(1)">上一页</a>
    <%}%>
-   <%=page%>/<%=pn%>
-   <%if(page < pn){ %>
+   <%=page%>/<%=total%>
+   <%if(page < total){ %>
       <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=page%>+1)">下一页</a>
    <%}%>
-   <%if(page >= pn){ %>
-      <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=pn%>)">下一页</a>
+   <%if(page >= total){ %>
+      <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=total%>)">下一页</a>
    <%}%>
-   <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=pn%>)">末页</a>
+   <a id="post_page" class="btn light-blue lighten-2" onclick="page(<%=total%>)">末页</a>
    </div>
    <script type="text/javascript">
-      function show(id) {
-         document.getElementById("qr"+id).hidden = false;
-         var btn = document.getElementById("btn"+id);
-         btn.parentNode.removeChild(btn);
+      function load(){
+          <%if(query.song_name){%>
+            document.getElementById('song_name').value = "<%=query.song_name%>";
+          <%}%>
+          <%if(query.song_author){%>
+            document.getElementById('song_author').value = "<%=query.song_author%>";
+          <%}%>
+          <%if(query.spectrum_author){%>
+            document.getElementById('spectrum_author').value = "<%=query.spectrum_author%>";
+          <%}%>
+          <%if(query.song_difficulty){%>
+            document.getElementById('song_difficulty').value = "<%=query.song_difficulty%>";
+          <%}%>
+      }
+      function verify() {
+         var form = document.getElementsByName("form");
+         var newElement = document.createElement("textarea");
+         newElement.hidden = true;
+         newElement.name = "token";
+         newElement.value = window.localStorage.getItem('token');
+         form[0].appendChild(newElement);
       }
       function page(page){
-         window.location.href = "http://localhost:80/page?page=" + page + "&&sn=<%=query.song_name%>&&sa=<%=query.song_author%>&&sp=<%=query.spectrum_author%>&&sd=<%=query.song_difficulty%>";
+         postForHtml("page", {
+            "page":page,
+            "song_name":"<%=query.song_name%>",
+            "song_author":"<%=query.song_author%>",
+            "spectrum_author":"<%=query.spectrum_author%>",
+            "song_difficulty":"<%=query.song_difficulty%>",
+            "token":window.localStorage.getItem('token')
+         });
       }
       function detail(id){
-         window.location.href = "http://localhost:80/detail?id=" + id;
+         postForHtml("detail", {
+            "id":id,
+            "token":window.localStorage.getItem('token')
+         });
       }
    </script>
    

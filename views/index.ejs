@@ -21,22 +21,22 @@
         <div class="container">
             <a onclick="home()" class="blue-text text-lighten-5" style=font-size:40px>&nbsp;不休的音符自制谱库&nbsp;</a>
             <%if(!verify.username){%>
-                <a class="right waves-effect waves-light" style="font-size:24px">&nbsp;注册&nbsp;</a>
+                <a class="right waves-effect waves-light" style="font-size:24px" href="register">&nbsp;注册&nbsp;</a>
                 <a class="right waves-effect waves-light" style="font-size:24px" href="login">&nbsp;登录&nbsp;</a>
+                <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
+                <div id="modal1" class="modal">
+                    <div class="modal-content black-text">
+                        <h4>作者留言</h4>
+                        <br>
+                        <p>待开发内容：认证谱师、曲谱打分、曲谱评论、热门推荐</p>
+                        <p>寻求用爱发电的前端设计师来合作~</p>
+                    </div>
+                </div>
             <%}%>
             <%if(verify.username){%>
                 <a class="right waves-effect waves-light" style="font-size:24px" onclick="logout()">&nbsp;登出&nbsp;</a>
                 <a class="right waves-effect waves-light" style="font-size:24px">&nbsp;<%=verify.username%>&nbsp;</a>
             <%}%>
-            <a class="right modal-trigger waves-effect waves-light" style="font-size:24px" href="#modal1">&nbsp;作者留言&nbsp;</a>
-            <div id="modal1" class="modal">
-                <div class="modal-content black-text">
-                    <h4>作者留言</h4>
-                    <br>
-                    <p>待开发内容：图片文字识别、曲谱审核、账户、曲谱打分、曲谱评论、热门推荐</p>
-                    <p>寻求用爱发电的前端设计师来合作~</p>
-                </div>
-            </div>
         </div>
     </nav>
     
@@ -44,18 +44,18 @@
         <div class="row">
         </div>
         <div class="row">
-            <a class="light-blue-text text-lighten-2" style="font-size:20px">&nbsp;&nbsp;当前共收录曲谱<%=total.num%>首。</a>
+            <a class="light-blue-text text-lighten-2" style="font-size:20px">&nbsp;&nbsp;当前共收录曲谱<%=num%>首。</a>
         </div>
         <div class="row">
-            <form class="col s12 m10 l10" action="result" method="post" enctype="multipart/form-data">
+            <form name="form" class="col s12 m10 l10" action="result" method="post" enctype="multipart/form-data" onsubmit="return verify()">
                 <label style="font-size: 20px">查询歌曲名称</label>
-                <input type="text" name="song_name"><br>
+                <input type="text" id="song_name" name="song_name"><br>
                 <label style="font-size: 20px">查询歌曲作者</label>
-                <input type="text" name="song_author"><br>
+                <input type="text" id="song_author" name="song_author"><br>
                 <label style="font-size: 20px">查询曲谱作者</label>
-                <input type="text" name="spectrum_author"><br>
+                <input type="text" id="spectrum_author" name="spectrum_author"><br>
                 <label style="font-size: 20px">查询难度</label>
-                <input type="text" name="song_difficulty"><br>
+                <input type="text" id="song_difficulty" name="song_difficulty"><br>
                 <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="搜索曲目">
             </form>
             <div class="col s12 m1 l1">
@@ -91,6 +91,14 @@
         }
         function upload(){
             postForHtml("upload", {"token":window.localStorage.getItem('token')});
+        }
+        function verify() {
+            var form = document.getElementsByName("form");
+            var newElement = document.createElement("textarea");
+            newElement.hidden = true;
+            newElement.name = "token";
+            newElement.value = window.localStorage.getItem('token');
+            form[0].appendChild(newElement);
         }
     </script>
      

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <title>不休的音符自制谱库:登录</title>
+   <title>不休的音符自制谱库:注册</title>
    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
    <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
 </head>
@@ -39,21 +39,50 @@
         <div class="row">
         </div>
         <div class="row">
-            <form name="form" class="col s12 m10 l10" action="#" method="post" enctype="multipart/form-data" onsubmit="return login()">
+            <form name="form" class="col s12 m10 l10" action="#" method="post" enctype="multipart/form-data" onsubmit="return register()">
                 <label style="font-size: 20px">用户名</label>
                 <input type="text" id="user_name" name="user_name"><br>
+                <label style="font-size: 20px">绑定手机号</label>
+                <input type="text" id="phone_num" name="phone_num"><br>
+                <label style="font-size: 20px">短信验证码</label>
+                <input type="text" id="verify_code" name="verify_code"><br>
                 <label style="font-size: 20px">密码</label>
                 <input type="password" id="password" name="password"><br>
-                <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="登录">
+                <label style="font-size: 20px">确认密码</label>
+                <input type="password" id="password_confirm" name="password_confirm"><br>
+                <label style="font-size: 20px">昵称</label>
+                <input type="text" id="nickname" name="nickname"><br>
+                <input type="submit" style="font-size: 20px" class="btn light-blue lighten-2" value="注册">
             </form>
         </div>
     </div>
     <script type="text/javascript">
-        function login() {
-            postForData("sign",
+        function register() {
+            var user = document.getElementById('user_name').value;
+            var phone = document.getElementById('phone_num').value;
+            var pw = document.getElementById('password').value;
+            var pwc = document.getElementById('password_confirm').value;
+            var nick = document.getElementById('nickname').value;
+
+            if(user == "" || phone == "" || pw == "" || pwc == "" || nick == ""){
+                alert("输入不可为空。")
+                return;
+            }
+            if(pw != pwc){
+                alert("两次密码输入不一致。")
+                return;
+            }
+            if(phone.length!=11){
+                alert("手机号位数有误。")
+                return;
+            }
+
+            postForData("create",
                 {
-                    "user":document.getElementById('user_name').value,
-                    "pw":hex_sha1(document.getElementById('password').value)
+                    "user":user,
+                    "pw":hex_sha1(pw),
+                    "phone":phone,
+                    "nick":nick
                 },
                 response
             );
@@ -61,12 +90,12 @@
         function response(){
             if(xmlHttpRequest.readyState == 4 && xmlHttpRequest.status == 200){
                 var data = JSON.parse(xmlHttpRequest.responseText);
-                window.localStorage.setItem('token', data['token']);
-                if(data['token'] != ""){
-                    postForHtml("index", {"token":window.localStorage.getItem('token')});
+                if(data['result']=="fail"){
+                    alert(data['msg']);
                 }
                 else{
-                    alert("账号名或密码错误，请重新输入。");
+                    alert("创建账户成功。");
+                    postForHtml("index", {"token":""});
                 }
             }
         }  
