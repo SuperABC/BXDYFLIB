@@ -13,6 +13,7 @@ app.use(express.static("/public"));
 app.get("/",router.home);
 app.get("/index",router.home);
 app.post("/index",router.index);
+app.post("/sms",router.sms);
 app.get("/login",router.login);
 app.post("/login",router.login);
 app.get("/register",router.register);

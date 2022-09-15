@@ -7,6 +7,8 @@ var mysql = require('mysql')
 var decodeImage = require('jimp').read;
 var qrcodeReader = require('qrcode-reader');
 var jwt = require('jsonwebtoken')
+var NodeCache = require( "node-cache" );
+var myCache = new NodeCache();
 
 var db = mysql.createPool({
     host: '127.0.0.1',
@@ -94,6 +96,30 @@ exports.index=function(req,res){
         });
     });
 };
+// post data
+// input:
+// {
+//     phone:手机号,
+// }
+// return:
+// {
+//     result:发送结果
+// }
+exports.sms=function(req,res){
+    var postData = '';
+    req.on('data', function (chuck) {  
+        postData += chuck;
+    });
+    req.on('end', function () {
+        var data = JSON.parse(postData);
+        var phone = data["phone"];
+
+        myCache.set(phone, "123456", 600);
+        res.json({
+            "result":"success"
+        });
+    });
+}
 // get html
 exports.login=function(req,res){
     res.render('login', {})
@@ -174,43 +200,40 @@ exports.create=function(req,res){
         var user = data['user'];
         var pw = data['pw'];
         var phone = data['phone'];
+        var code = data['code'];
         var nick = data['nick'];
-        var sql = 'select * from user where username = \'' + user + '\' or phone = \'' + phone  + '\' or nick = \'' + nick + '\'';
-        db.query(sql, (err, results) => {
-            if(err){
-                console.log(sql)
-                console.log(err.message);
-                console.log();
+
+        var cc = myCache.get(phone);
+        if (cc == undefined){
+            res.json({
+                'result':'fail',
+                'msg':'请先接收验证码。'
+            });
+            return;
+        }
+        else{
+            if(code != cc){
                 res.json({
                     'result':'fail',
-                    'msg':'数据库查询异常。'
+                    'msg':'验证码错误。'
                 });
                 return;
             }
-            if(results.length > 0){
+        }
+
+        sql = 'insert into user(username, pwsha, nick, phone) values(\'' +
+            user + '\', \'' + pw + '\', \'' + nick + '\', \'' + phone + '\')';
+        db.query(sql, (err, results) => {
+            if(err){
                 res.json({
                     'result':'fail',
-                    'msg':'用户已存在。'
+                    'msg':'用户信息已存在。'
                 });
             }
             else{
-                sql = 'insert into user(username, pwsha, nick, phone) values(\'' +
-                    user + '\', \'' + pw + '\', \'' + nick + '\', \'' + phone + '\')';
-                db.query(sql, (err, results) => {
-                    if(err){
-                        console.log(sql)
-                        console.log(err.message);
-                        console.log();
-                        res.json({
-                            'result':'fail',
-                            'msg':'数据库查询异常。'
-                        });
-                        return;
-                    }
-                    res.json({
-                        'result':'success',
-                        'msg':''
-                    });
+                res.json({
+                    'result':'success',
+                    'msg':'账户创建成功。'
                 });
             }
         });

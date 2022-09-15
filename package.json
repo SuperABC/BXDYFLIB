@@ -9,7 +9,9 @@
     "materialize": "^1.0.0",
     "materialize-css": "^1.0.0",
     "mysql": "^2.18.1",
-    "qrcode-reader": "^1.0.4"
+    "node-cache": "^5.1.2",
+    "qrcode-reader": "^1.0.4",
+    "unisms": "^0.0.6"
   },
   "name": "spectrum",
   "version": "1.0.0",
